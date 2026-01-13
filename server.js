@@ -1,39 +1,45 @@
-console.log("SERVER STARTED");
 const express = require("express");
+const cors = require("cors");       // <-- import cors
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 
-// Load env variables FIRST
 dotenv.config();
 
-// Import routes
 const authRoutes = require("./src/routes/authRoutes");
 
 const app = express();
 
+app.post("/test", (req, res) => {
+  console.log("TEST BODY:", req.body);
+  res.json({ body: req.body });
+});
 
-// Middleware
+
+// ENABLE CORS
+app.use(cors({
+  origin: "http://localhost:5173", // your React app origin
+  credentials: true
+}));
+
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Routes
-app.use("/api/auth", authRoutes);
+app.get("/", (req, res) => {
+  res.send("API running");
+});
 
-// MongoDB connection
+app.use("/routes", authRoutes);
+
+// MongoDB
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB connected"))
   .catch((err) => {
-    console.error("MongoDB connection failed:", err);
+    console.error("MongoDB connection failed:", err.message);
     process.exit(1);
   });
 
-// Start server
 const PORT = process.env.PORT || 5000;
-app.post("/test", (req, res) => {
-  res.json({ message: "POST working" });
-});
-
-
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
