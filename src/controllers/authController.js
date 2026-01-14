@@ -74,3 +74,11 @@ exports.login = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+// 🚪 LOGOUT
+exports.logout = (req, res) => {
+  res.clearCookie('jwt');
+  req.session.destroy(() => res.redirect('/login'));
+};
+
+
