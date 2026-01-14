@@ -19,25 +19,31 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
+    enum: ["user", "admin"], // Only these two roles allowed
     default: "user",
   },
-});
+  cart: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Cart", // Reference to user's cart
+  },
+}, { timestamps: true });
 
-// 💡 Correct async pre save (no next())
+// Hash password before saving
 userSchema.pre("save", async function () {
-  // this refers to the document
-  if (!this.isModified("password")) return; // only hash if changed
+  if (!this.isModified("password")) return;
 
   const salt = await bcrypt.genSalt(12);
   this.password = await bcrypt.hash(this.password, salt);
-
-  // no next(), no callbacks — just return
 });
 
-// Method to compare passwords
+// Compare password method
 userSchema.methods.comparePassword = async function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };
 
+// Check if user is admin
+userSchema.methods.isAdmin = function () {
+  return this.role === "admin";
+};
+
 module.exports = mongoose.model("User", userSchema);
-  
