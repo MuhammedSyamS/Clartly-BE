@@ -1,14 +1,19 @@
-// server.js
+
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
-
 dotenv.config();
 
 // ROUTES
 const authRoutes = require("./src/routes/authRoutes");
 const cartRoutes = require("./src/routes/cartRoutes");
+const orderRoutes = require("./src/routes/orderRoutes");
+const productRoutes = require("./src/routes/productRoutes");
+
+
+
+
 
 // MIDDLEWARE
 const errorMiddleware = require("./src/middleware/errorMiddleware");
@@ -35,6 +40,10 @@ app.get("/", (req, res) => {
 
 app.use("/", authRoutes);
 app.use("/api/cart", cartRoutes);
+app.use("/api/orders", orderRoutes);
+app.use("/api/products", productRoutes);
+
+
 
 // ======================
 // ERROR HANDLER
