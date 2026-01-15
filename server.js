@@ -9,19 +9,23 @@ dotenv.config();
 // ROUTES
 const authRoutes = require("./src/routes/authRoutes");
 const cartRoutes = require("./src/routes/cartRoutes");
+const wishlistRoutes = require("./src/routes/wishlistRoutes");
 
 // MIDDLEWARE
-const errorMiddleware = require("./src/middleware.js/errorMiddleware");
+const errorMiddleware = require("./src/middleware/errorMiddleware");
 
+// ✅ CREATE APP FIRST
 const app = express();
 
 // ======================
 // GLOBAL MIDDLEWARE
 // ======================
-app.use(cors({
-  origin: "http://localhost:5173",
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -35,8 +39,7 @@ app.get("/", (req, res) => {
 
 app.use("/", authRoutes);
 app.use("/api/cart", cartRoutes);
-app.use("/api/wishlist", require("./routes/wishlistRoutes"));
-
+app.use("/api/wishlist", wishlistRoutes);
 
 // ======================
 // ERROR HANDLER
@@ -46,9 +49,10 @@ app.use(errorMiddleware);
 // ======================
 // DATABASE
 // ======================
-mongoose.connect(process.env.MONGO_URI)
+mongoose
+  .connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB connected"))
-  .catch(err => {
+  .catch((err) => {
     console.error(err);
     process.exit(1);
   });
