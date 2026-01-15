@@ -11,7 +11,7 @@ const authRoutes = require("./src/routes/authRoutes");
 const cartRoutes = require("./src/routes/cartRoutes");
 
 // MIDDLEWARE
-const errorMiddleware = require("./src/middleware.js/errorMiddleware");
+const errorMiddleware = require("./src/middleware/errorMiddleware");
 
 const app = express();
 
