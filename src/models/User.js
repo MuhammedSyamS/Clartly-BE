@@ -26,6 +26,12 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Cart", // Reference to user's cart
   },
+    wishlist: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Product"
+    }
+  ]
 }, { timestamps: true });
 
 // Hash password before saving
