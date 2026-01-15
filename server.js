@@ -35,6 +35,8 @@ app.get("/", (req, res) => {
 
 app.use("/", authRoutes);
 app.use("/api/cart", cartRoutes);
+app.use("/api/wishlist", require("./routes/wishlistRoutes"));
+
 
 // ======================
 // ERROR HANDLER
