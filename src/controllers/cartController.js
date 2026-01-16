@@ -4,14 +4,11 @@ const Product = require("../models/Product");
 // GET CART
 exports.getCart = async (req, res) => {
   try {
-    const cart = await Cart.findOne({ user: req.user._id }).populate(
-      "items.productId"
-    );
-
+    const cart = await Cart.findOne({ user: req.user._id }).populate("items.productId");
     if (!cart) return res.json({ items: [] });
 
-    const items = cart.items.map((item) => ({
-      _id: item.productId._id,
+    const items = cart.items.map(item => ({
+      id: item.productId._id,
       name: item.productId.name,
       price: item.productId.price,
       image: item.productId.image,
@@ -36,16 +33,16 @@ exports.addToCart = async (req, res) => {
     let cart = await Cart.findOne({ user: req.user._id });
     if (!cart) cart = await Cart.create({ user: req.user._id, items: [] });
 
-    const item = cart.items.find((i) => i.productId.toString() === productId);
+    const itemIndex = cart.items.findIndex(i => i.productId.toString() === productId);
 
-    if (item) {
-      item.quantity += 1;
+    if (itemIndex > -1) {
+      cart.items[itemIndex].quantity += 1;
     } else {
       cart.items.push({ productId, quantity: 1 });
     }
 
     await cart.save();
-    res.json({ message: "Added to cart" });
+    res.json({ message: "Added to cart", cart });
   } catch (err) {
     console.error("Add to cart error:", err);
     res.status(500).json({ message: "Server error" });
@@ -60,9 +57,9 @@ exports.removeFromCart = async (req, res) => {
     const cart = await Cart.findOne({ user: req.user._id });
     if (!cart) return res.status(404).json({ message: "Cart not found" });
 
-    cart.items = cart.items.filter((i) => i.productId.toString() !== productId);
-    await cart.save();
+    cart.items = cart.items.filter(i => i.productId.toString() !== productId);
 
+    await cart.save();
     res.json({ message: "Item removed" });
   } catch (err) {
     console.error("Remove cart error:", err);
