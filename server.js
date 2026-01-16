@@ -9,6 +9,7 @@ const authRoutes = require("./src/routes/authRoutes");
 const cartRoutes = require("./src/routes/cartRoutes");
 const orderRoutes = require("./src/routes/orderRoutes");
 const productRoutes = require("./src/routes/productRoutes");
+const wishlistRoutes = require("./src/routes/wishlistRoutes");
 
 // MIDDLEWARE
 const errorMiddleware = require("./src/middleware/errorMiddleware");
@@ -33,6 +34,7 @@ app.use("/", authRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/products", productRoutes);
+app.use("/api/wishlist", wishlistRoutes);
 
 // ERROR HANDLER
 app.use(errorMiddleware);

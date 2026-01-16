@@ -1,15 +1,14 @@
 const express = require("express");
 const router = express.Router();
-const Product = require("../models/Product");
+const productController = require("../controllers/productController");
 
-// GET all products
-router.get("/", async (req, res, next) => {
-  try {
-    const products = await Product.find(); // fetch all products
-    res.json(products);
-  } catch (err) {
-    next(err);
-  }
-});
+// PUBLIC
+router.get("/", productController.getAllProducts);
+router.get("/:id", productController.getProductById);
+
+// ADMIN (protect later)
+router.post("/", productController.createProduct);
+router.put("/:id", productController.updateProduct);
+router.delete("/:id", productController.deleteProduct);
 
 module.exports = router;
