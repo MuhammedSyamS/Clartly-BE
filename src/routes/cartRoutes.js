@@ -17,4 +17,8 @@ router.post("/add", authMiddleware, cartController.addToCart);
 // REMOVE from cart
 router.delete("/:productId", authMiddleware, cartController.removeFromCart);
 
+
+// ✅ CLEAR entire cart
+router.post("/clear", authMiddleware, cartController.clearCart);
+
 module.exports = router;

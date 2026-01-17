@@ -5,14 +5,14 @@ const Product = require("../src/models/Product");
 const products = [
   {
     name: "ZEBRONICS SILENCIO 111",
-    description: "Wireless Headphone, Hybrid ANC (50dB)...",
+    description: "Wireless Headphone, Hybrid ANC (50dB), 55*Hrs Backup, Transparency Mode, 40mm Titanium Drivers, 3 EQ Modes, ENC, Gaming Mode, Dual Pairing, Rapid Charge, Bluetooth v5.4 (Black)",
     price: 2999,
     category: "Headphones",
     image: "/products/Zebronics.webp",
   },
   {
     name: "SHARAV M1",
-    description: "Smart Watch for Men...",
+    description:  "Smart Watch for Men - Smart Watches for Men Women, Bluetooth Smartwatch Touch Screen Bluetooth Smart Watches for Android iOS Phones Wrist Phone Watch",
     price: 4999,
     category: "Watches",
     image: "/products/Shavar watch.jpg",
