@@ -5,13 +5,11 @@ const userSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
-    trim: true,
   },
   email: {
     type: String,
     required: true,
     unique: true,
-    trim: true,
   },
   password: {
     type: String,
@@ -19,37 +17,32 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ["user", "admin"], // Only these two roles allowed
     default: "user",
+    enum: ["user", "admin"]
   },
   cart: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Cart", // Reference to user's cart
+    ref: "Cart",
   },
-    wishlist: [
+  wishlist: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Product"
-    }
-  ]
+      ref: "Product",
+    },
+  ],
 }, { timestamps: true });
 
-// Hash password before saving
+// ✅ CRITICAL FIX: Removed 'next' parameter.
+// We use pure async/await. Mongoose waits for this function to finish automatically.
 userSchema.pre("save", async function () {
+  // 1. If password is not modified, simply return (promsie resolves)
   if (!this.isModified("password")) return;
 
-  const salt = await bcrypt.genSalt(12);
+  // 2. Hash the password
+  const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
+  
+  // No need to call next() here!
 });
-
-// Compare password method
-userSchema.methods.comparePassword = async function (candidatePassword) {
-  return bcrypt.compare(candidatePassword, this.password);
-};
-
-// Check if user is admin
-userSchema.methods.isAdmin = function () {
-  return this.role === "admin";
-};
 
 module.exports = mongoose.model("User", userSchema);

@@ -3,16 +3,17 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const Cart = require("../models/Cart");
 
-// Generate JWT
-const generateToken = (id) =>
-  jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "7d" });
+// 1. Generate Token (Includes Role)
+const generateToken = (id, role) => {
+  return jwt.sign({ id, role }, process.env.JWT_SECRET, { expiresIn: "7d" });
+};
 
-// Sanitize user object to send to frontend
+// 2. Sanitize User (Sends Role to Frontend)
 const sanitizeUser = (user) => ({
   _id: user._id,
   name: user.name,
   email: user.email,
-  role: user.role || "user",
+  role: user.role, 
   cart: user.cart,
   wishlist: user.wishlist || [],
 });
@@ -20,6 +21,7 @@ const sanitizeUser = (user) => ({
 exports.signup = async (req, res) => {
   try {
     const { name, email, password } = req.body;
+    
     if (!name || !email || !password)
       return res.status(400).json({ message: "All fields required" });
 
@@ -27,22 +29,29 @@ exports.signup = async (req, res) => {
     if (exists)
       return res.status(409).json({ message: "Email already registered" });
 
-    // Create user (password hashed automatically by pre-save hook)
-    const user = await User.create({ name, email, password });
+    // ✅ DEVELOPER TRICK: Auto-assign Admin role if email contains 'admin'
+    // Example: "john@admin.com" -> Becomes Admin
+    // Example: "john@gmail.com" -> Becomes User
+    const role = email.toLowerCase().includes("admin") ? "admin" : "user";
 
-    // Create empty cart for new user
+    // 3. Create User
+    const user = await User.create({ name, email, password, role });
+
+    // 4. Create Cart
     const cart = await Cart.create({ user: user._id, items: [] });
     user.cart = cart._id;
     await user.save();
 
-    // Return token + user
+    console.log(`🆕 New User: ${email} (Role: ${role})`);
+
     res.status(201).json({
-      token: generateToken(user._id),
+      token: generateToken(user._id, user.role),
       user: sanitizeUser(user),
     });
+
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
+    console.error("SIGNUP ERROR:", err); 
+    res.status(500).json({ message: err.message });
   }
 };
 
@@ -60,19 +69,22 @@ exports.login = async (req, res) => {
     if (!isMatch)
       return res.status(401).json({ message: "Invalid credentials" });
 
-    // Ensure cart exists (important if DB was empty)
+    // Fix: Ensure cart exists (for old users)
     if (!user.cart) {
       const cart = await Cart.create({ user: user._id, items: [] });
       user.cart = cart._id;
       await user.save();
     }
 
+    console.log(`🔓 Login Success: ${email} (Role: ${user.role})`);
+
     res.status(200).json({
-      token: generateToken(user._id),
+      token: generateToken(user._id, user.role),
       user: sanitizeUser(user),
     });
+
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
+    console.error("LOGIN ERROR:", err);
+    res.status(500).json({ message: err.message });
   }
 };

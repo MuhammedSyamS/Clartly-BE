@@ -1,16 +1,11 @@
+// routes/orderRoutes.js
 const express = require("express");
 const router = express.Router();
 const authMiddleware = require("../middleware/authMiddleware");
+const { placeOrder, trackOrder, getMyOrders } = require("../controllers/orderController");
 
-const {
-  placeOrder,
-  getOrders,
-} = require("../controllers/orderController");
-
-// ✅ GET orders
-router.get("/", authMiddleware, getOrders);
-
-// ✅ PLACE order
-router.post("/", authMiddleware, placeOrder);
+router.post("/place", authMiddleware, placeOrder);
+router.get("/", authMiddleware, getMyOrders); // 👈 must be "/" to match frontend
+router.get("/:orderId", authMiddleware, trackOrder);
 
 module.exports = router;
