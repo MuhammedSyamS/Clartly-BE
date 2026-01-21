@@ -10,43 +10,48 @@ const cartRoutes = require("./src/routes/cartRoutes");
 const orderRoutes = require("./src/routes/orderRoutes");
 const productRoutes = require("./src/routes/productRoutes");
 const wishlistRoutes = require("./src/routes/wishlistRoutes");
+const paymentRoutes = require("./src/routes/paymentRoutes");
+const webhookRoutes = require("./src/routes/webhookRoutes");
 
 // MIDDLEWARE
 const errorMiddleware = require("./src/middleware/errorMiddleware");
-// const authMiddleware = require("./src/middleware/authMiddleware"); // Not used globally, used in routes
 
 const app = express();
 
 // GLOBAL MIDDLEWARE
-app.use(cors({
-  origin: ["http://localhost:5173", "http://localhost:5174"], // Allow your frontend ports
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "http://localhost:5174",
+      "https://verda-foregone-noncruciformly.ngrok-free.dev",
+    ],
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // TEST ROUTE
-app.get("/", (req, res) => {
-  res.send("API running");
-});
+app.get("/", (req, res) => res.send("API running"));
 
-// ✅ REGISTER ROUTES
+// ROUTES
 app.use("/", authRoutes);
 app.use("/api/cart", cartRoutes);
-
-// ⚠️ FIXED: Changed from "/api/orders" to "/api/order" to match Frontend
-app.use("/api/order", orderRoutes); 
-
+app.use("/api/order", orderRoutes); // NOTE: frontend uses /api/order
 app.use("/api/products", productRoutes);
 app.use("/api/wishlist", wishlistRoutes);
+app.use("/api/payment", paymentRoutes);
+app.use("/api/webhook", webhookRoutes);
 
 // ERROR HANDLER
 app.use(errorMiddleware);
 
 // DATABASE CONNECTION
-mongoose.connect(process.env.MONGO_URI)
+mongoose
+  .connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB connected"))
-  .catch(err => {
+  .catch((err) => {
     console.error("❌ DB Connection Error:", err);
     process.exit(1);
   });
