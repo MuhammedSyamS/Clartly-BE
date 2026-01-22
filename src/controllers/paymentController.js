@@ -1,9 +1,9 @@
 const Razorpay = require("razorpay");
 const crypto = require("crypto");
-const mongoose = require("mongoose");
 const Product = require("../models/Product");
 const Order = require("../models/Order");
 
+// Initialize Razorpay instance
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_KEY_SECRET,
@@ -21,20 +21,16 @@ exports.createRazorpayOrder = async (req, res) => {
     // Calculate total amount & validate products
     let amount = 0;
     for (const item of cartItems) {
-      if (!mongoose.Types.ObjectId.isValid(item.productId)) {
-        return res.status(400).json({ message: `Invalid product ID: ${item.productId}` });
-      }
-
       const product = await Product.findById(item.productId);
       if (!product) {
         return res.status(404).json({ message: `Product not found: ${item.productId}` });
       }
-
       amount += product.price * item.quantity;
     }
 
+    // Create Razorpay order
     const order = await razorpay.orders.create({
-      amount: Math.round(amount * 100), // Convert rupees → paise
+      amount: Math.round(amount * 100), // Rupees → Paise
       currency: "INR",
       receipt: "rcpt_" + Date.now(),
     });
@@ -49,26 +45,26 @@ exports.createRazorpayOrder = async (req, res) => {
 // ========================== VERIFY PAYMENT ==========================
 exports.verifyPayment = async (req, res) => {
   try {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, cartItems, userId } = req.body;
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
 
-    if (!cartItems || cartItems.length === 0) {
-      return res.status(400).json({ message: "Cart is empty" });
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      return res.status(400).json({ message: "Payment details missing" });
     }
 
-    const body = razorpay_order_id + "|" + razorpay_payment_id;
-    const expectedSignature = crypto
+    // Verify signature
+    const generatedSignature = crypto
       .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
-      .update(body)
+      .update(razorpay_order_id + "|" + razorpay_payment_id)
       .digest("hex");
 
-    if (expectedSignature !== razorpay_signature) {
+    if (generatedSignature !== razorpay_signature) {
       return res.status(400).json({ message: "Invalid payment signature" });
     }
 
     // Save order in DB
     const order = new Order({
-      user: userId,
-      products: cartItems, // [{ productId, quantity }]
+      user: req.user._id, // ✅ from auth middleware
+      products: req.body.cartItems || [], // optional
       paymentId: razorpay_payment_id,
       orderId: razorpay_order_id,
       status: "paid",
@@ -79,7 +75,7 @@ exports.verifyPayment = async (req, res) => {
 
     res.json({ success: true, order });
   } catch (err) {
-    console.error("Verify error:", err);
-    res.status(500).json({ message: "Verification failed" });
+    console.error("Verify payment error:", err);
+    res.status(500).json({ message: "Payment verification failed" });
   }
 };

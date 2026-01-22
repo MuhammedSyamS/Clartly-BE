@@ -9,12 +9,17 @@ const orderRoutes = require("./src/routes/orderRoutes");
 const productRoutes = require("./src/routes/productRoutes");
 const wishlistRoutes = require("./src/routes/wishlistRoutes");
 const paymentRoutes = require("./src/routes/paymentRoutes");
+const chatRoutes = require("./src/routes/chatRoutes");
+const middlewareRoute = require("./src/routes/middlewareRoutes");
+
+
+
 
 const errorMiddleware = require("./src/middleware/errorMiddleware");
 
 const app = express();
 
-// CORS - must include your frontend origin
+// CORS - allow frontend origin
 app.use(cors({
   origin: [
     "http://localhost:5173",
@@ -30,10 +35,12 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.use("/", authRoutes);
 app.use("/api/cart", cartRoutes);
-app.use("/api/order", orderRoutes);
+app.use("/api/orders", orderRoutes); // ✅ corrected to plural 'orders'
 app.use("/api/products", productRoutes);
 app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/payment", paymentRoutes);
+app.use("/api/chat", chatRoutes);
+app.use("/api", middlewareRoute);
 
 // Error handler
 app.use(errorMiddleware);

@@ -1,31 +1,35 @@
 const Order = require("../models/Order");
-const Cart = require("../models/Cart");
 const Product = require("../models/Product");
+const mongoose = require("mongoose");
 
-// PLACE ORDER
+// PLACE ORDER (COD or Online)
 exports.placeOrder = async (req, res) => {
   try {
-    const userId = req.user._id;
-    const { paymentMethod } = req.body;
+    const userId = req.user._id; // from authMiddleware
+    const { cartItems, shippingAddress, paymentMethod, paymentDetails } = req.body;
 
-    const cart = await Cart.findOne({ user: userId });
-    if (!cart || cart.items.length === 0)
+    if (!cartItems || cartItems.length === 0) {
       return res.status(400).json({ message: "Cart is empty" });
+    }
 
-    const orderItems = [];
+    // Prepare order items
+    const items = [];
     let totalAmount = 0;
 
-    for (const item of cart.items) {
-      const product = await Product.findById(item.productId);
-      if (!product)
-        return res
-          .status(404)
-          .json({ message: `Product not found: ${item.productId}` });
+    for (const item of cartItems) {
+      if (!mongoose.Types.ObjectId.isValid(item.productId)) {
+        return res.status(400).json({ message: `Invalid product ID: ${item.productId}` });
+      }
 
-      orderItems.push({
+      const product = await Product.findById(item.productId);
+      if (!product) {
+        return res.status(404).json({ message: `Product not found: ${item.productId}` });
+      }
+
+      items.push({
         product: product._id,
-        name: product.name,   // snapshot
-        image: product.image, // snapshot
+        name: product.name,
+        image: product.image,
         quantity: item.quantity,
         price: product.price,
       });
@@ -33,49 +37,20 @@ exports.placeOrder = async (req, res) => {
       totalAmount += product.price * item.quantity;
     }
 
-    const order = await Order.create({
+    // Create order
+    const order = new Order({
       user: userId,
-      items: orderItems,
+      items,
       totalAmount,
       paymentMethod,
       paymentStatus: paymentMethod === "cod" ? "Pending" : "Paid",
-      status: "Pending",
     });
 
-    await Cart.deleteOne({ user: userId });
+    await order.save();
 
-    res.status(201).json({ message: "Order placed successfully", order });
+    res.json({ success: true, order });
   } catch (err) {
-    console.error("Place Order Error:", err);
+    console.error("Place order error:", err);
     res.status(500).json({ message: "Failed to place order" });
-  }
-};
-
-// GET MY ORDERS
-exports.getMyOrders = async (req, res) => {
-  try {
-    const orders = await Order.find({ user: req.user._id }).sort({
-      createdAt: -1,
-    });
-    res.json(orders);
-  } catch (err) {
-    console.error("Get Orders Error:", err);
-    res.status(500).json({ message: "Failed to fetch orders" });
-  }
-};
-
-// TRACK ORDER
-exports.trackOrder = async (req, res) => {
-  try {
-    const order = await Order.findOne({
-      _id: req.params.orderId,
-      user: req.user._id,
-    });
-
-    if (!order) return res.status(404).json({ message: "Order not found" });
-    res.json(order);
-  } catch (err) {
-    console.error("Track Order Error:", err);
-    res.status(500).json({ message: "Failed to track order" });
   }
 };
