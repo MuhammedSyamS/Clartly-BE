@@ -77,6 +77,9 @@ exports.verifyOtp = async (req, res) => {
       console.error("Cart creation error:", err);
     }
 
+    // Populate wishlist (fresh signup, so it's empty but properly referenced)
+    await user.populate("wishlist");
+
     // Delete OTP record
     await Otp.deleteOne({ email: email.toLowerCase() });
 
@@ -113,6 +116,9 @@ exports.login = async (req, res) => {
         console.error("Cart creation error:", err);
       }
     }
+
+    // Populate wishlist
+    await user.populate("wishlist");
 
     res.status(200).json({
       token: generateToken(user._id, user.role),

@@ -10,10 +10,8 @@ const productRoutes = require("./src/routes/productRoutes");
 const wishlistRoutes = require("./src/routes/wishlistRoutes");
 const paymentRoutes = require("./src/routes/paymentRoutes");
 const chatRoutes = require("./src/routes/chatRoutes");
+const adminRoutes = require("./src/routes/admin/adminRoutes");
 const middlewareRoute = require("./src/routes/middlewareRoutes");
-
-
-
 
 const errorMiddleware = require("./src/middleware/errorMiddleware");
 
@@ -35,11 +33,12 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.use("/", authRoutes);
 app.use("/api/cart", cartRoutes);
-app.use("/api/orders", orderRoutes); // ✅ corrected to plural 'orders'
+app.use("/api/orders", orderRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/chat", chatRoutes);
+app.use("/api/admin", adminRoutes);
 app.use("/api", middlewareRoute);
 
 // Error handler

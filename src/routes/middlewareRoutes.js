@@ -1,7 +1,8 @@
 // src/routes/middlewareRoute.js
 const express = require("express");
 const router = express.Router();
-const auth = require("../middleware/authMiddleware");
+const protect = require("../middleware/authMiddleware");
+const { isAdmin } = require("../middleware/authMiddleware");
 
 // Dummy controllers (replace with your real controllers)
 const getProfile = (req, res) => {
@@ -17,9 +18,9 @@ const getAllUsers = (req, res) => {
 // ============================
 
 // Normal user route - requires login
-router.get("/profile", auth(), getProfile);
+router.get("/profile", protect, getProfile);
 
 // Admin-only route - requires login + admin
-router.get("/admin/users", auth(true), getAllUsers);
+router.get("/admin/users", protect, isAdmin, getAllUsers);
 
 module.exports = router;
